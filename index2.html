@@ -1,0 +1,1870 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Рацион питания</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-app: #F4F4F2;
+            --bg-surface: #FFFFFF;
+            --bg-muted: #E9E8E4;
+            --bg-muted-hover: #DCDAD3;
+            --text-main: #18181B;
+            --text-sub: #71717A;
+            --border: #E4E4E0;
+            --accent-bg: #18181B;
+            --accent-text: #FFFFFF;
+            --danger: #EF4444;
+            --success: #16A34A;
+        }
+
+        [data-theme="dark"] {
+            --bg-app: #0F0F12;
+            --bg-surface: #18181C;
+            --bg-muted: #242429;
+            --bg-muted-hover: #2E2E36;
+            --text-main: #F4F4F5;
+            --text-sub: #A1A1AA;
+            --border: #2A2A30;
+            --accent-bg: #F4F4F5;
+            --accent-text: #18181B;
+        }
+
+        [data-theme="olive"] {
+            --bg-app: #EFF2EC;
+            --bg-surface: #FAFBF9;
+            --bg-muted: #E2E7DD;
+            --bg-muted-hover: #D4DDD0;
+            --text-main: #1A2419;
+            --text-sub: #5A6958;
+            --border: #CFD8C9;
+            --accent-bg: #263B26;
+            --accent-text: #FFFFFF;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background-color: var(--bg-app);
+            color: var(--text-main);
+            min-height: 100dvh;
+            line-height: 1.4;
+            overflow-x: hidden;
+        }
+
+        button, input, select, textarea {
+            font-family: inherit;
+            color: inherit;
+            border: none;
+            background: none;
+            outline: none;
+        }
+
+        button {
+            cursor: pointer;
+            user-select: none;
+        }
+
+        /* Контейнер приложения */
+        .app-wrap {
+            max-width: 960px;
+            margin: 0 auto;
+            min-height: 100dvh;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .app-wrap {
+                padding: 28px 24px;
+                gap: 20px;
+            }
+        }
+
+        /* Верхняя шапка по макету */
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .menu-circle-btn {
+            width: 52px;
+            height: 52px;
+            border-radius: 50%;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            flex-shrink: 0;
+            transition: transform 0.12s ease;
+        }
+
+        .menu-circle-btn:active {
+            transform: scale(0.95);
+        }
+
+        .menu-circle-btn span {
+            width: 20px;
+            height: 2.5px;
+            background: var(--text-main);
+            border-radius: 2px;
+        }
+
+        .date-pill-btn {
+            flex: 1;
+            height: 52px;
+            border-radius: 999px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            transition: transform 0.12s ease;
+        }
+
+        .date-pill-btn:active {
+            transform: scale(0.99);
+        }
+
+        .date-text {
+            font-size: 16px;
+            font-weight: 800;
+            letter-spacing: -0.02em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        @media (min-width: 768px) {
+            .date-text {
+                font-size: 18px;
+            }
+        }
+
+        .badge {
+            background: var(--bg-muted);
+            color: var(--text-main);
+            font-size: 12px;
+            font-weight: 700;
+            padding: 5px 12px;
+            border-radius: 999px;
+            white-space: nowrap;
+        }
+
+        /* Полоска дней недели для ПК */
+        .week-bar {
+            display: none;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 8px;
+        }
+
+        @media (min-width: 768px) {
+            .week-bar {
+                display: grid;
+            }
+        }
+
+        .week-day-btn {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 10px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+            font-weight: 700;
+            transition: all 0.15s ease;
+        }
+
+        .week-day-btn.active {
+            background: var(--accent-bg);
+            color: var(--accent-text);
+            border-color: var(--accent-bg);
+        }
+
+        /* 2 Главных блока (Телефон: друг под другом, ПК: 2 колонки) */
+        .main-grid {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 20px;
+            }
+        }
+
+        .big-card {
+            background: var(--bg-surface);
+            border: 1.5px solid var(--border);
+            border-radius: 28px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            min-height: 240px;
+            cursor: pointer;
+            transition: transform 0.15s ease, border-color 0.15s ease;
+        }
+
+        @media (min-width: 768px) {
+            .big-card {
+                padding: 30px;
+                min-height: 370px;
+            }
+        }
+
+        .big-card:hover {
+            border-color: var(--text-sub);
+        }
+
+        .big-card:active {
+            transform: scale(0.99);
+        }
+
+        .big-card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .big-card-title {
+            font-size: 28px;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+            text-transform: uppercase;
+            line-height: 1.05;
+        }
+
+        @media (min-width: 768px) {
+            .big-card-title {
+                font-size: 34px;
+            }
+        }
+
+        .emoji-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .emoji-chip {
+            width: 42px;
+            height: 42px;
+            border-radius: 14px;
+            background: var(--bg-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 21px;
+        }
+
+        .preview-sub {
+            color: var(--text-sub);
+            font-size: 14px;
+            font-weight: 500;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .mini-meals-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 12px 0;
+        }
+
+        .mini-meal-row {
+            background: var(--bg-muted);
+            padding: 10px 14px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        .mini-meal-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 0;
+        }
+
+        .mini-meal-left span.title {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .big-card-footer {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding-top: 16px;
+            margin-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .footer-stat {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text-sub);
+        }
+
+        .chevron-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: var(--accent-bg);
+            color: var(--accent-text);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        /* Полноэкранные окна (Продукты, Меню, Настройки) */
+        .fullscreen-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 60;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.22s ease;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+        }
+
+        @media (min-width: 768px) {
+            .fullscreen-modal {
+                align-items: center;
+                padding: 24px;
+            }
+        }
+
+        .fullscreen-modal.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-window {
+            width: 100%;
+            height: 100dvh;
+            background: var(--bg-app);
+            display: flex;
+            flex-direction: column;
+            transform: translateY(25px);
+            transition: transform 0.25s cubic-bezier(0.2, 1, 0.3, 1);
+            overflow: hidden;
+        }
+
+        @media (min-width: 768px) {
+            .modal-window {
+                max-width: 900px;
+                height: 86dvh;
+                max-height: 820px;
+                border-radius: 28px;
+                border: 1px solid var(--border);
+            }
+        }
+
+        .fullscreen-modal.open .modal-window {
+            transform: translateY(0);
+        }
+
+        .modal-topbar {
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--border);
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-shrink: 0;
+        }
+
+        .modal-title {
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .exit-btn {
+            background: var(--bg-muted);
+            color: var(--text-main);
+            padding: 8px 16px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .exit-btn:hover {
+            background: var(--bg-muted-hover);
+        }
+
+        .modal-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        @media (min-width: 768px) {
+            .modal-body {
+                padding: 24px;
+            }
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 14px;
+        }
+
+        @media (min-width: 768px) {
+            .cards-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 16px;
+            }
+        }
+
+        /* Карточка продукта и блюда */
+        .item-card {
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 22px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .item-media {
+            position: relative;
+            height: 140px;
+            background: var(--bg-muted);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .item-media img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .item-media .fallback-emoji {
+            font-size: 52px;
+        }
+
+        .floating-tag {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            padding: 5px 11px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 800;
+        }
+
+        .floating-right {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .item-content {
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item-head {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .item-name {
+            font-size: 16px;
+            font-weight: 800;
+        }
+
+        .item-sub {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-sub);
+        }
+
+        .price-tag {
+            background: var(--bg-muted);
+            padding: 5px 10px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 800;
+            white-space: nowrap;
+        }
+
+        .kbzhu-grid {
+            background: var(--bg-muted);
+            padding: 8px;
+            border-radius: 14px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 6px;
+            text-align: center;
+        }
+
+        .kbzhu-cell {
+            background: var(--bg-surface);
+            border-radius: 10px;
+            padding: 6px 2px;
+        }
+
+        .kbzhu-val {
+            font-size: 12px;
+            font-weight: 800;
+        }
+
+        .kbzhu-lbl {
+            font-size: 10px;
+            color: var(--text-sub);
+        }
+
+        .recipe-box {
+            background: var(--bg-muted);
+            padding: 12px;
+            border-radius: 14px;
+            font-size: 12px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        /* Боковое меню (Три полоски слева) */
+        .drawer-backdrop {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            backdrop-filter: blur(2px);
+            z-index: 70;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.22s ease;
+        }
+
+        .drawer-backdrop.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .drawer-box {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            width: 86%;
+            max-width: 340px;
+            background: var(--bg-surface);
+            border-right: 1px solid var(--border);
+            z-index: 71;
+            transform: translateX(-100%);
+            transition: transform 0.25s cubic-bezier(0.2, 1, 0.3, 1);
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            overflow-y: auto;
+        }
+
+        .drawer-backdrop.open .drawer-box {
+            transform: translateX(0);
+        }
+
+        .section-label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-sub);
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .btn-surface {
+            background: var(--bg-muted);
+            color: var(--text-main);
+            border-radius: 16px;
+            padding: 12px 14px;
+            font-size: 13px;
+            font-weight: 700;
+            transition: background 0.15s ease;
+        }
+
+        .btn-surface:hover {
+            background: var(--bg-muted-hover);
+        }
+
+        .btn-accent {
+            background: var(--accent-bg);
+            color: var(--accent-text);
+            border-radius: 16px;
+            padding: 12px 16px;
+            font-size: 13px;
+            font-weight: 800;
+            text-align: center;
+        }
+
+        /* Формы в настройках */
+        .input-field {
+            width: 100%;
+            background: var(--bg-muted);
+            color: var(--text-main);
+            padding: 11px 14px;
+            border-radius: 12px;
+            font-size: 13px;
+            font-weight: 600;
+            border: 1px solid transparent;
+        }
+
+        .input-field:focus {
+            border-color: var(--text-sub);
+        }
+
+        /* Сетка смайликов */
+        .emoji-picker-grid {
+            background: var(--bg-muted);
+            padding: 8px;
+            border-radius: 16px;
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            max-height: 155px;
+            overflow-y: auto;
+        }
+
+        @media (min-width: 640px) {
+            .emoji-picker-grid {
+                grid-template-columns: repeat(10, 1fr);
+            }
+        }
+
+        .emoji-pick-btn {
+            height: 34px;
+            border-radius: 10px;
+            font-size: 19px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .emoji-pick-btn.selected {
+            background: var(--bg-surface);
+            box-shadow: 0 0 0 2px var(--text-main);
+        }
+
+        /* Экран входа по паролю/коду */
+        .lock-screen {
+            position: fixed;
+            inset: 0;
+            background: var(--bg-app);
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        .lock-screen.hidden {
+            display: none !important;
+        }
+
+        .lock-card {
+            width: 100%;
+            max-width: 380px;
+            background: var(--bg-surface);
+            border: 1px solid var(--border);
+            border-radius: 28px;
+            padding: 28px 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+        }
+
+        /* Уведомление (тост) */
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%) translateY(20px);
+            background: var(--accent-bg);
+            color: var(--accent-text);
+            padding: 10px 18px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            z-index: 120;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.2s ease;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+    </style>
+</head>
+<body id="appBody" data-theme="light">
+
+<!-- ЭКРАН ВХОДА ПО КОДУ (Вместо аккаунтов) -->
+<div id="lockScreen" class="lock-screen hidden">
+    <div class="lock-card">
+        <div style="width: 48px; height: 48px; border-radius: 16px; background: var(--bg-muted); display: flex; align-items: center; justify-content: center; font-size: 24px;">🔑</div>
+        <div>
+            <h1 style="font-size: 22px; font-weight: 800;">Рацион питания</h1>
+            <p style="font-size: 13px; color: var(--text-sub); margin-top: 4px;">
+                Придумайте свой пароль (код) или введите существующий, чтобы открыть своё меню и настройки.
+            </p>
+        </div>
+
+        <form id="loginForm" style="display: flex; flex-direction: column; gap: 12px;">
+            <input type="text" id="codeInput" class="input-field" required placeholder="Ваш код (например: dom2026)" autocomplete="off">
+
+            <label style="display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--text-sub); cursor: pointer;">
+                <input type="checkbox" id="rememberCheckbox" checked style="width: 16px; height: 16px; accent-color: #18181B;">
+                <span>Запомнить это устройство</span>
+            </label>
+
+            <button type="submit" class="btn-accent" style="padding: 14px;">Войти в меню</button>
+        </form>
+    </div>
+</div>
+
+<!-- ОСНОВНОЙ ИНТЕРФЕЙС -->
+<div class="app-wrap">
+
+    <!-- ШАПКА: Кнопка 3 полоски + Плашка с точной датой РФ -->
+    <header class="top-bar">
+        <button id="openDrawerBtn" class="menu-circle-btn" aria-label="Меню">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+
+        <button id="openDayPickerBtn" class="date-pill-btn">
+            <span id="dateDisplayText" class="date-text">12.11.26 Четверг</span>
+            <span id="todayBadge" class="badge">Сегодня ▾</span>
+        </button>
+    </header>
+
+    <!-- ПОЛОСКА ДНЕЙ НЕДЕЛИ (На ПК) -->
+    <nav id="desktopWeekBar" class="week-bar"></nav>
+
+    <!-- 2 ГЛАВНЫЕ КАРТОЧКИ: ПРОДУКТЫ И МЕНЮ -->
+    <main class="main-grid">
+
+        <!-- КАРТОЧКА 1: ПРОДУКТЫ -->
+        <section id="openProductsCard" class="big-card">
+            <div>
+                <div class="big-card-header">
+                    <h2 class="big-card-title">Продукты</h2>
+                    <span id="mainProductsCount" class="badge">0 поз.</span>
+                </div>
+                <div id="mainProductsEmojis" class="emoji-strip"></div>
+                <p id="mainProductsNames" class="preview-sub"></p>
+            </div>
+
+            <div class="big-card-footer">
+                <span id="mainProductsTotal" class="footer-stat">~0 ₽</span>
+                <div class="chevron-circle">∨</div>
+            </div>
+        </section>
+
+        <!-- КАРТОЧКА 2: ЧТО ПРИГОТОВИТЬ ИЗ НИХ -->
+        <section id="openMealsCard" class="big-card">
+            <div>
+                <div class="big-card-header">
+                    <h2 class="big-card-title">Что приготовить из них</h2>
+                    <span class="badge">Меню</span>
+                </div>
+                <div id="mainMealsList" class="mini-meals-list"></div>
+            </div>
+
+            <div class="big-card-footer">
+                <span id="mainMealsTotal" class="footer-stat">0 блюд</span>
+                <div class="chevron-circle">∨</div>
+            </div>
+        </section>
+
+    </main>
+</div>
+
+<!-- ОКНО 1: ПРОДУКТЫ НА ДЕНЬ -->
+<div id="productsModal" class="fullscreen-modal">
+    <div class="modal-window">
+        <div class="modal-topbar">
+            <h3 id="productsModalTitle" class="modal-title">Продукты</h3>
+            <button id="closeProductsModalBtn" class="exit-btn">Выход ✕</button>
+        </div>
+        <div class="modal-body">
+            <div id="productsModalList" class="cards-grid"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ОКНО 2: МЕНЮ (БЛЮДА НА ДЕНЬ) -->
+<div id="mealsModal" class="fullscreen-modal">
+    <div class="modal-window">
+        <div class="modal-topbar">
+            <h3 id="mealsModalTitle" class="modal-title">Меню</h3>
+            <button id="closeMealsModalBtn" class="exit-btn">Выход ✕</button>
+        </div>
+        <div class="modal-body">
+            <div id="mealsModalList" class="cards-grid"></div>
+        </div>
+    </div>
+</div>
+
+<!-- ОКНО 3: ВЫБОР ДНЯ НЕДЕЛИ (При нажатии на дату сверху) -->
+<div id="dayPickerModal" class="fullscreen-modal">
+    <div class="modal-window" style="max-width: 460px; height: auto; max-height: 85dvh; border-radius: 26px; margin: auto;">
+        <div class="modal-topbar">
+            <h3 class="modal-title">Выберите день недели</h3>
+            <button id="closeDayPickerBtn" class="exit-btn">Закрыть ✕</button>
+        </div>
+        <div id="dayPickerList" class="modal-body" style="display: flex; flex-direction: column; gap: 8px;"></div>
+    </div>
+</div>
+
+<!-- ОКНО 4: НАСТРОЙКА МЕНЮ И ПРОДУКТОВ (Пресеты + Свои пресеты + Смайлики) -->
+<div id="settingsModal" class="fullscreen-modal">
+    <div class="modal-window">
+        <div class="modal-topbar">
+            <h3 class="modal-title">Настройка меню и продуктов</h3>
+            <button id="closeSettingsModalBtn" class="exit-btn">Выход ✕</button>
+        </div>
+
+        <div class="modal-body" style="display: flex; flex-direction: column; gap: 24px;">
+
+            <!-- 1. БАЗОВЫЕ И СВОИ ПРЕСЕТЫ -->
+            <section>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; gap: 8px; flex-wrap: wrap;">
+                    <span class="section-label" style="margin: 0;">Готовые и свои пресеты</span>
+                </div>
+
+                <!-- Сохранение текущего рациона как своего пресета -->
+                <form id="saveCustomPresetForm" style="display: flex; gap: 8px; margin-bottom: 12px;">
+                    <input type="text" id="customPresetNameInput" class="input-field" required placeholder="Название своего пресета (например: Моё меню на неделю)">
+                    <button type="submit" class="btn-accent" style="white-space: nowrap;">+ Сохранить пресет</button>
+                </form>
+
+                <div id="presetsGrid" class="cards-grid"></div>
+            </section>
+
+            <!-- 2. РЕДАКТОР КОНКРЕТНОГО ДНЯ -->
+            <section style="border-top: 1px solid var(--border); padding-top: 20px;">
+                <span class="section-label">Выберите день для редактирования</span>
+                <div id="editorDayButtons" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; margin-bottom: 16px;"></div>
+
+                <!-- Переключатель вкладок: Продукты / Меню -->
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; background: var(--bg-muted); padding: 4px; border-radius: 14px; max-width: 360px; margin-bottom: 16px;">
+                    <button type="button" id="tabBtnProducts" class="btn-surface" style="background: var(--bg-surface); padding: 8px;">Продукты</button>
+                    <button type="button" id="tabBtnMeals" class="btn-surface" style="background: transparent; padding: 8px;">Меню (Блюда)</button>
+                </div>
+
+                <!-- ВКЛАДКА РЕДАКТОРА: ПРОДУКТЫ -->
+                <div id="editorProductsSection" class="cards-grid">
+                    <div>
+                        <span class="section-label">Продукты выбранного дня</span>
+                        <div id="editorProductsItems" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                    </div>
+
+                    <form id="addProductForm" style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <strong style="font-size: 14px;">+ Добавить продукт</strong>
+                            <span id="prodEmojiSelectedPreview" style="font-size: 24px;">🍗</span>
+                        </div>
+
+                        <input type="text" id="prodName" class="input-field" required placeholder="Название (например: Творог 5%)">
+
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                            <input type="text" id="prodWeight" class="input-field" required placeholder="Граммовка (200 г)">
+                            <input type="number" id="prodPrice" class="input-field" required min="0" placeholder="Цена ₽ (80)">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+                            <input type="number" id="prodKcal" class="input-field" required min="0" placeholder="Ккал">
+                            <input type="number" step="0.1" id="prodProt" class="input-field" required min="0" placeholder="Белки">
+                            <input type="number" step="0.1" id="prodFat" class="input-field" required min="0" placeholder="Жиры">
+                            <input type="number" step="0.1" id="prodCarb" class="input-field" required min="0" placeholder="Углев.">
+                        </div>
+
+                        <div>
+                            <span class="section-label">Смайлик продукта:</span>
+                            <div id="prodEmojiGrid" class="emoji-picker-grid"></div>
+                        </div>
+
+                        <input type="url" id="prodImg" class="input-field" placeholder="Ссылка на фото (необязательно)">
+
+                        <button type="submit" class="btn-accent">Добавить в этот день</button>
+                    </form>
+                </div>
+
+                <!-- ВКЛАДКА РЕДАКТОРА: МЕНЮ -->
+                <div id="editorMealsSection" class="cards-grid hidden">
+                    <div>
+                        <span class="section-label">Блюда выбранного дня</span>
+                        <div id="editorMealsItems" style="display: flex; flex-direction: column; gap: 8px;"></div>
+                    </div>
+
+                    <form id="addMealForm" style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 22px; padding: 16px; display: flex; flex-direction: column; gap: 10px;">
+                        <div style="display: flex; align-items: center; justify-content: space-between;">
+                            <strong style="font-size: 14px;">+ Добавить блюдо</strong>
+                            <span id="mealEmojiSelectedPreview" style="font-size: 24px;">🍲</span>
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: 110px 1fr; gap: 8px;">
+                            <select id="mealType" class="input-field">
+                                <option value="Завтрак">Завтрак</option>
+                                <option value="Обед" selected>Обед</option>
+                                <option value="Ужин">Ужин</option>
+                                <option value="Перекус">Перекус</option>
+                            </select>
+                            <input type="text" id="mealTitle" class="input-field" required placeholder="Название блюда">
+                        </div>
+
+                        <div style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 6px;">
+                            <input type="text" id="mealTime" class="input-field" required placeholder="25 мин">
+                            <input type="number" id="mealKcal" class="input-field" required min="0" placeholder="Ккал">
+                            <input type="number" id="mealProt" class="input-field" required min="0" placeholder="Б">
+                            <input type="number" id="mealFat" class="input-field" required min="0" placeholder="Ж">
+                            <input type="number" id="mealCarb" class="input-field" required min="0" placeholder="У">
+                        </div>
+
+                        <div>
+                            <span class="section-label">Смайлик блюда:</span>
+                            <div id="mealEmojiGrid" class="emoji-picker-grid"></div>
+                        </div>
+
+                        <input type="text" id="mealIngr" class="input-field" required placeholder="Ингредиенты (например: курица, рис)">
+                        <textarea id="mealSteps" rows="2" class="input-field" required placeholder="Как готовить..."></textarea>
+                        <input type="url" id="mealImg" class="input-field" placeholder="Ссылка на фото (необязательно)">
+
+                        <button type="submit" class="btn-accent">Добавить блюдо</button>
+                    </form>
+                </div>
+            </section>
+        </div>
+    </div>
+</div>
+
+<!-- БОКОВОЕ МЕНЮ (По клику на три полоски в левом верхнем углу) -->
+<div id="drawerBackdrop" class="drawer-backdrop">
+    <aside class="drawer-box">
+        <div style="display: flex; flex-direction: column; gap: 20px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border); padding-bottom: 14px;">
+                <div>
+                    <h2 style="font-size: 18px; font-weight: 800;">Рацион питания</h2>
+                    <p id="drawerPresetSubtitle" style="font-size: 12px; color: var(--text-sub);">Стандартный (2000 ₽)</p>
+                </div>
+                <button id="closeDrawerBtn" class="btn-surface" style="width: 36px; height: 36px; padding: 0; border-radius: 50%;">✕</button>
+            </div>
+
+            <!-- Кнопка настройки меню и продуктов -->
+            <button id="openSettingsFromDrawer" class="btn-surface" style="display: flex; align-items: center; justify-content: space-between; text-align: left; padding: 14px;">
+                <div>
+                    <div style="font-size: 14px; font-weight: 800;">⚙️ Настройка меню и продуктов</div>
+                    <div style="font-size: 11px; color: var(--text-sub); margin-top: 2px;">Пресеты 2к / 3к / 4.5к, свои пресеты и блюда</div>
+                </div>
+                <span style="font-size: 18px;">›</span>
+            </button>
+
+            <!-- Настройки темы -->
+            <div>
+                <span class="section-label">Настройки темы</span>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                    <button type="button" data-theme-btn="light" class="btn-surface" style="text-align: center; padding: 10px 6px; font-size: 12px;">Светлая</button>
+                    <button type="button" data-theme-btn="dark" class="btn-surface" style="text-align: center; padding: 10px 6px; font-size: 12px;">Тёмная</button>
+                    <button type="button" data-theme-btn="olive" class="btn-surface" style="text-align: center; padding: 10px 6px; font-size: 12px;">Оливковая</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- НИЖНИЙ БЛОК: КОД ДОСТУПА (Заместо аккаунтов) + ПЕРЕНОС НА ДРУГОЕ УСТРОЙСТВО -->
+        <div style="border-top: 1px solid var(--border); padding-top: 16px; display: flex; flex-direction: column; gap: 10px;">
+            <div style="background: var(--bg-muted); padding: 12px; border-radius: 16px;">
+                <div style="font-size: 11px; color: var(--text-sub); font-weight: 700;">Ваш код настроек (вместо аккаунта):</div>
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 4px; gap: 8px;">
+                    <strong id="currentCodeDisplay" style="font-size: 15px; font-weight: 800;">1234</strong>
+                    <button id="copyCodeBtn" class="btn-surface" style="background: var(--bg-surface); padding: 6px 10px; font-size: 11px; border-radius: 10px;">Скопировать</button>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button id="exportMenuBtn" class="btn-surface" style="font-size: 11px; padding: 10px;">📤 Скопировать меню маме</button>
+                <button id="importMenuBtn" class="btn-surface" style="font-size: 11px; padding: 10px;">📥 Вставить чужое меню</button>
+            </div>
+
+            <!-- Скрытое поле для вставки кода-слепка от другого человека -->
+            <form id="importMenuForm" class="hidden" style="display: flex; gap: 6px;">
+                <input type="text" id="importCodeStringInput" class="input-field" placeholder="Вставьте скопированный код меню">
+                <button type="submit" class="btn-accent" style="padding: 8px 12px;">ОК</button>
+            </form>
+
+            <button id="logoutCodeBtn" class="btn-surface" style="color: var(--danger); text-align: center;">Сменить код / Выйти</button>
+        </div>
+    </aside>
+</div>
+
+<div id="toast" class="toast">Скопировано</div>
+
+<script>
+    // 55 смайликов для продуктов и блюд
+    const EMOJIS = [
+        '🍗','🥩','🍖','🥓','🥚','🍳','🧀','🥛','🧈','🐟','🍤',
+        '🌾','🍚','🍝','🥔','🥣','🍞','🥖','🥐','🥞','🧇','🥟',
+        '🥕','🧅','🥬','🥦','🥒','🍅','🫑','🧄','🌶️','🌽','🍄',
+        '🥜','🫘','🍎','🍌','🍋','🍊','🍓','🥑','🍲','🥘','🥗',
+        '🍛','🍜','🥪','🍕','🍔','🌮','🥫','🍯','🍫','☕','🍵'
+    ];
+
+    const PHOTOS = {
+        meat: 'https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?auto=format&fit=crop&w=600&q=80',
+        grain: 'https://images.unsplash.com/photo-1586201375761-83865001e31c?auto=format&fit=crop&w=600&q=80',
+        eggs: 'https://images.unsplash.com/photo-1582722872445-44dc5f7e3c8f?auto=format&fit=crop&w=600&q=80',
+        dairy: 'https://images.unsplash.com/photo-1550583724-b2692b85b150?auto=format&fit=crop&w=600&q=80',
+        veg: 'https://images.unsplash.com/photo-1598170845058-32b9d6a5da37?auto=format&fit=crop&w=600&q=80',
+        fish: 'https://images.unsplash.com/photo-1519708227418-c8fd9a32b7a2?auto=format&fit=crop&w=600&q=80',
+        fruit: 'https://images.unsplash.com/photo-1571771894821-ce9b6c11b08e?auto=format&fit=crop&w=600&q=80'
+    };
+
+    // Точное вычисление текущей недели и сегодняшнего числа в РФ (Europe/Moscow)
+    function buildRussianWeek() {
+        const now = new Date();
+        let mskDate = new Date(now.getTime());
+        try {
+            const parts = new Intl.DateTimeFormat('en-US', {
+                timeZone: 'Europe/Moscow',
+                year: 'numeric', month: '2-digit', day: '2-digit'
+            }).formatToParts(now);
+            const map = {};
+            parts.forEach(p => map[p.type] = p.value);
+            mskDate = new Date(Number(map.year), Number(map.month) - 1, Number(map.day));
+        } catch (e) {}
+
+        const jsDay = mskDate.getDay(); // 0 (Вс) .. 6 (Сб)
+        const mondayOffset = jsDay === 0 ? -6 : 1 - jsDay;
+        const monday = new Date(mskDate);
+        monday.setDate(mskDate.getDate() + mondayOffset);
+
+        const specs = [
+            { key: 'mon', short: 'Пн', name: 'Понедельник' },
+            { key: 'tue', short: 'Вт', name: 'Вторник' },
+            { key: 'wed', short: 'Ср', name: 'Среда' },
+            { key: 'thu', short: 'Чт', name: 'Четверг' },
+            { key: 'fri', short: 'Пт', name: 'Пятница' },
+            { key: 'sat', short: 'Сб', name: 'Суббота' },
+            { key: 'sun', short: 'Вс', name: 'Воскресенье' }
+        ];
+
+        let todayKey = 'thu';
+        const week = specs.map((s, idx) => {
+            const d = new Date(monday);
+            d.setDate(monday.getDate() + idx);
+            const dd = String(d.getDate()).padStart(2, '0');
+            const mm = String(d.getMonth() + 1).padStart(2, '0');
+            const yy = String(d.getFullYear()).slice(-2);
+            const isToday = d.getFullYear() === mskDate.getFullYear() &&
+                            d.getMonth() === mskDate.getMonth() &&
+                            d.getDate() === mskDate.getDate();
+            if (isToday) todayKey = s.key;
+            return { ...s, dateStr: `${dd}.${mm}.${yy}`, isToday };
+        });
+
+        return { week, todayKey };
+    }
+
+    const { week: WEEK_DAYS, todayKey: TODAY_KEY } = buildRussianWeek();
+
+    // Встроенные пресеты (2000 ₽, 3000 ₽, 4500 ₽)
+    const BUILTIN_PRESETS = {
+        budget2k: {
+            id: 'budget2k',
+            title: 'Стандартный (2000 ₽)',
+            desc: 'Курица, яйца, крупы, макароны, картофель, капуста, печень.',
+            days: {
+                mon: {
+                    products: [
+                        { name: 'Овсянка', weight: '80 г', price: 10, kcal: 352, protein: 12, fat: 6, carbs: 62, emoji: '🥣', image: PHOTOS.grain },
+                        { name: 'Курица (на суп)', weight: '350 г', price: 75, kcal: 190, protein: 16, fat: 14, carbs: 0, emoji: '🍗', image: PHOTOS.meat },
+                        { name: 'Картофель', weight: '300 г', price: 15, kcal: 77, protein: 2, fat: 0.4, carbs: 16, emoji: '🥔', image: PHOTOS.veg },
+                        { name: 'Гречка', weight: '150 г', price: 18, kcal: 313, protein: 12.6, fat: 3.3, carbs: 62, emoji: '🌾', image: PHOTOS.grain },
+                        { name: 'Яйца С1', weight: '2 шт', price: 24, kcal: 157, protein: 12.7, fat: 11.5, carbs: 0.7, emoji: '🥚', image: PHOTOS.eggs }
+                    ],
+                    meals: [
+                        { type: 'Завтрак', title: 'Овсянка на воде', time: '10 мин', kcal: 285, protein: 10, fat: 5, carbs: 49, emoji: '🥣', image: PHOTOS.grain, ingredients: 'Овсянка 80 г, вода, соль', steps: 'Варить 6–7 минут на слабом огне.' },
+                        { type: 'Обед', title: 'Куриный суп с картофелем', time: '40 мин', kcal: 360, protein: 24, fat: 15, carbs: 32, emoji: '🍲', image: PHOTOS.meat, ingredients: 'Курица 350 г, картофель 300 г', steps: 'Сварить бульон 25 минут, добавить картофель и варить еще 15 минут.' },
+                        { type: 'Ужин', title: 'Гречка с вареными яйцами', time: '20 мин', kcal: 540, protein: 28, fat: 16, carbs: 70, emoji: '🌾', image: PHOTOS.grain, ingredients: 'Гречка 150 г, яйца 2 шт', steps: 'Отварить гречку 15 минут и подать с яйцами.' }
+                    ]
+                },
+                tue: {
+                    products: [
+                        { name: 'Яйца С1', weight: '3 шт', price: 36, kcal: 157, protein: 12.7, fat: 11.5, carbs: 0.7, emoji: '🥚', image: PHOTOS.eggs },
+                        { name: 'Макароны', weight: '200 г', price: 27, kcal: 344, protein: 10.4, fat: 1.1, carbs: 71.5, emoji: '🍝', image: PHOTOS.grain },
+                        { name: 'Куриное филе', weight: '250 г', price: 85, kcal: 113, protein: 23.6, fat: 1.9, carbs: 0.4, emoji: '🍗', image: PHOTOS.meat },
+                        { name: 'Лук и морковь', weight: '150 г', price: 10, kcal: 38, protein: 1.3, fat: 0.1, carbs: 7.5, emoji: '🥕', image: PHOTOS.veg }
+                    ],
+                    meals: [
+                        { type: 'Завтрак', title: 'Яичница из 3 яиц', time: '8 мин', kcal: 260, protein: 21, fat: 19, carbs: 1, emoji: '🍳', image: PHOTOS.eggs, ingredients: '3 яйца, щепотка соли', steps: 'Пожарить на сковороде 4 минуты.' },
+                        { type: 'Обед и Ужин', title: 'Макароны по-флотски с курицей', time: '25 мин', kcal: 960, protein: 71, fat: 14, carbs: 135, emoji: '🍝', image: PHOTOS.meat, ingredients: 'Макароны 200 г, филе 250 г, лук, морковь', steps: 'Обжарить мелко рубленое филе с луком и морковью, смешать с макаронами.' }
+                    ]
+                },
+                wed: {
+                    products: [
+                        { name: 'Овсянка', weight: '80 г', price: 10, kcal: 352, protein: 12.3, fat: 6.2, carbs: 61.8, emoji: '🥣', image: PHOTOS.grain },
+                        { name: 'Рис', weight: '180 г', price: 20, kcal: 344, protein: 6.7, fat: 0.7, carbs: 78.9, emoji: '🍚', image: PHOTOS.grain },
+                        { name: 'Печень куриная', weight: '250 г', price: 72, kcal: 137, protein: 20.4, fat: 5.9, carbs: 0.7, emoji: '🥩', image: PHOTOS.meat },
+                        { name: 'Лук репчатый', weight: '100 г', price: 6, kcal: 41, protein: 1.4, fat: 0, carbs: 8.2, emoji: '🧅', image: PHOTOS.veg }
+                    ],
+                    meals: [
+                        { type: 'Завтрак', title: 'Овсяная каша', time: '10 мин', kcal: 280, protein: 10, fat: 5, carbs: 49, emoji: '🥣', image: PHOTOS.grain, ingredients: 'Овсянка 80 г', steps: 'Сварить на воде.' },
+                        { type: 'Обед и Ужин', title: 'Рис с тушеной печенью', time: '30 мин', kcal: 970, protein: 63, fat: 17, carbs: 142, emoji: '🍛', image: PHOTOS.meat, ingredients: 'Рис 180 г, печень 250 г, лук 100 г', steps: 'Отварить рис, потушить печень с луком 12–15 минут.' }
+                    ]
+                },
+                thu: {
+                    products: [
+                        { name: 'Яйца С1', weight: '3 шт (165 г)', price: 36, kcal: 157, protein: 12.7, fat: 11.5, carbs: 0.7, emoji: '🥚', image: PHOTOS.eggs },
+                        { name: 'Куриные голени', weight: '350 г', price: 95, kcal: 185, protein: 18.2, fat: 12.4, carbs: 0, emoji: '🍗', image: PHOTOS.meat },
+                        { name: 'Капуста белокочанная', weight: '450 г', price: 22, kcal: 28, protein: 1.8, fat: 0.1, carbs: 4.7, emoji: '🥬', image: PHOTOS.veg },
+                        { name: 'Гречка', weight: '120 г', price: 14, kcal: 313, protein: 12.6, fat: 3.3, carbs: 62.1, emoji: '🌾', image: PHOTOS.grain },
+                        { name: 'Лук и морковь', weight: '150 г', price: 10, kcal: 38, protein: 1.3, fat: 0.1, carbs: 7.5, emoji: '🥕', image: PHOTOS.veg }
+                    ],
+                    meals: [
+                        { type: 'Завтрак', title: 'Омлет из 3 яиц', time: '10 мин', kcal: 265, protein: 21, fat: 19, carbs: 2, emoji: '🍳', image: PHOTOS.eggs, ingredients: '3 яйца, вода, соль', steps: 'Взбить яйца с водой, готовить под крышкой 6 минут.' },
+                        { type: 'Обед', title: 'Тушеная капуста с голенями', time: '40 мин', kcal: 590, protein: 46, fat: 30, carbs: 32, emoji: '🥘', image: PHOTOS.meat, ingredients: 'Голени 350 г, капуста 450 г, морковь, лук', steps: 'Обжарить голени, добавить капусту и тушить 25 минут под крышкой.' },
+                        { type: 'Ужин', title: 'Гречка с поджаркой', time: '20 мин', kcal: 375, protein: 15, fat: 4, carbs: 74, emoji: '🌾', image: PHOTOS.grain, ingredients: 'Гречка 120 г, лук, морковь', steps: 'Отварить гречку в подсоленной воде 15 минут.' }
+                    ]
+                },
+                fri: {
+                    products: [
+                        { name: 'Овсянка', weight: '80 г', price: 10, kcal: 352, protein: 12.3, fat: 6.2, carbs: 61.8, emoji: '🥣', image: PHOTOS.grain },
+                        { name: 'Картофель', weight: '450 г', price: 23, kcal: 77, protein: 2, fat: 0.4, carbs: 16.3, emoji: '🥔', image: PHOTOS.veg },
+                        { name: 'Куриное филе', weight: '250 г', price: 85, kcal: 113, protein: 23.6, fat: 1.9, carbs: 0.4, emoji: '🍗', image: PHOTOS.meat },
+                        { name: 'Капуста свежая', weight: '200 г', price: 10, kcal: 28, protein: 1.8, fat: 0.1, carbs: 4.7, emoji: '🥗', image: PHOTOS.veg }
+                    ],
+                    meals: [
+                        { type: 'Завтрак', title: 'Овсяная каша', time: '10 мин', kcal: 280, protein: 10, fat: 5, carbs: 49, emoji: '🥣', image: PHOTOS.grain, ingredients: 'Овсянка 80 г', steps: 'Варить 6 минут.' },
+                        { type: 'Обед и Ужин', title: 'Жареный картофель с филе и салат', time: '35 мин', kcal: 910, protein: 67, fat: 18, carbs: 102, emoji: '🥔', image: PHOTOS.meat, ingredients: 'Картофель 450 г, филе 250 г, капуста 200 г', steps: 'Обжарить картофель с кусочками филе, подать с капустным салатом.' }
+                    ]
+                },
+                sat: {
+                    products: [
+                        { name: 'Яйца С1', weight: '2 шт', price: 24, kcal: 157, protein: 12.7, fat: 11.5, carbs: 0.7, emoji: '🥚', image: PHOTOS.eggs },
+                        { name: 'Рис', weight: '160 г', price: 18, kcal: 344, protein: 6.7, fat: 0.7, carbs: 78.9, emoji: '🍚', image: PHOTOS.grain },
+                        { name: 'Куриные голени', weight: '300 г', price: 82, kcal: 185, protein: 18.2, fat: 12.4, carbs: 0, emoji: '🍗', image: PHOTOS.meat },
+                        { name: 'Морковь и лук', weight: '200 г', price: 12, kcal: 38, protein: 1.3, fat: 0.1, carbs: 7.5, emoji: '🥕', image: PHOTOS.veg }
+                    ],
+                    meals: [
+                        { type: 'Завтрак', title: 'Вареные яйца', time: '8 мин', kcal: 175, protein: 14, fat: 13, carbs: 1, emoji: '🥚', image: PHOTOS.eggs, ingredients: '2 яйца', steps: 'Отварить вкрутую 8 минут.' },
+                        { type: 'Обед и Ужин', title: 'Домашний плов с курицей', time: '40 мин', kcal: 1050, protein: 58, fat: 33, carbs: 135, emoji: '🍛', image: PHOTOS.grain, ingredients: 'Рис 160 г, голени 300 г, морковь, лук', steps: 'Обжарить курицу с луком и морковью, засыпать рис, залить водой и тушить 25 минут.' }
+                    ]
+                },
+                sun: {
+                    products: [
+                        { name: 'Овсянка', weight: '80 г', price: 10, kcal: 352, protein: 12.3, fat: 6.2, carbs: 61.8, emoji: '🥣', image: PHOTOS.grain },
+                        { name: 'Макароны', weight: '180 г', price: 24, kcal: 344, protein: 10.4, fat: 1.1, carbs: 71.5, emoji: '🍝', image: PHOTOS.grain },
+                        { name: 'Печень куриная', weight: '250 г', price: 72, kcal: 137, protein: 20.4, fat: 5.9, carbs: 0.7, emoji: '🥩', image: PHOTOS.meat }
+                    ],
+                    meals: [
+                        { type: 'Завтрак', title: 'Овсяная каша', time: '10 мин', kcal: 280, protein: 10, fat: 5, carbs: 49, emoji: '🥣', image: PHOTOS.grain, ingredients: 'Овсянка 80 г', steps: 'Сварить на воде.' },
+                        { type: 'Обед и Ужин', title: 'Макароны с тушеной печенью', time: '25 мин', kcal: 960, protein: 70, fat: 18, carbs: 130, emoji: '🍝', image: PHOTOS.meat, ingredients: 'Макароны 180 г, печень 250 г', steps: 'Потушить печень и смешать с отварными макаронами.' }
+                    ]
+                }
+            }
+        },
+        extended3k: {
+            id: 'extended3k',
+            title: 'Расширенный (3000 ₽)',
+            desc: 'Индейка, свинина, творог 5%, сыр, бананы и свежие овощи.',
+            days: {}
+        },
+        mass4500: {
+            id: 'mass4500',
+            title: 'Сытный (4500 ₽)',
+            desc: 'Говядина, красная рыба, индейка, орехи, авокадо, сыр.',
+            days: {}
+        }
+    };
+
+    // Заполним дни для 3000 и 4500 компактно, чтобы все 7 дней были полными
+    ['mon','tue','wed','thu','fri','sat','sun'].forEach((d, idx) => {
+        BUILTIN_PRESETS.extended3k.days[d] = {
+            products: [
+                { name: 'Творог 5%', weight: '200 г', price: 80, kcal: 121, protein: 17, fat: 5, carbs: 2, emoji: '🧀', image: PHOTOS.dairy },
+                { name: 'Филе индейки', weight: '300 г', price: 155, kcal: 115, protein: 24, fat: 2, carbs: 0, emoji: '🍗', image: PHOTOS.meat },
+                { name: idx % 2 === 0 ? 'Гречка' : 'Рис', weight: '160 г', price: 20, kcal: 330, protein: 10, fat: 2, carbs: 70, emoji: '🍚', image: PHOTOS.grain },
+                { name: 'Банан + Овощи', weight: '300 г', price: 65, kcal: 60, protein: 1.2, fat: 0.3, carbs: 14, emoji: '🍌', image: PHOTOS.fruit }
+            ],
+            meals: [
+                { type: 'Завтрак', title: 'Творог с бананом', time: '5 мин', kcal: 380, protein: 35, fat: 10, carbs: 34, emoji: '🧀', image: PHOTOS.dairy, ingredients: 'Творог 200 г, банан', steps: 'Нарезать банан и смешать с творогом.' },
+                { type: 'Обед и Ужин', title: 'Филе индейки с гарниром и овощами', time: '30 мин', kcal: 890, protein: 84, fat: 12, carbs: 110, emoji: '🍗', image: PHOTOS.meat, ingredients: 'Индейка 300 г, крупа 160 г, свежие овощи', steps: 'Обжарить индейку со специями, отварить гарнир.' }
+            ]
+        };
+
+        BUILTIN_PRESETS.mass4500.days[d] = {
+            products: [
+                { name: 'Яйца + Авокадо', weight: '3 шт + 100 г', price: 115, kcal: 160, protein: 9, fat: 13, carbs: 4, emoji: '🥑', image: PHOTOS.eggs },
+                { name: idx % 2 === 0 ? 'Говядина' : 'Красная рыба', weight: '280 г', price: 220, kcal: 185, protein: 20, fat: 11, carbs: 0, emoji: idx % 2 === 0 ? '🥩' : '🐟', image: idx % 2 === 0 ? PHOTOS.meat : PHOTOS.fish },
+                { name: 'Рис / Паста', weight: '180 г', price: 28, kcal: 344, protein: 10, fat: 1.5, carbs: 72, emoji: '🍝', image: PHOTOS.grain },
+                { name: 'Орехи', weight: '30 г', price: 45, kcal: 640, protein: 16, fat: 58, carbs: 11, emoji: '🥜', image: PHOTOS.fruit }
+            ],
+            meals: [
+                { type: 'Завтрак', title: 'Омлет с авокадо и орехами', time: '10 мин', kcal: 540, protein: 27, fat: 42, carbs: 12, emoji: '🥑', image: PHOTOS.eggs, ingredients: '3 яйца, авокадо 100 г, орехи 30 г', steps: 'Поджарить яйца, подать с ломтиками авокадо.' },
+                { type: 'Обед и Ужин', title: idx % 2 === 0 ? 'Говядина с гарниром' : 'Стейк красной рыбы с рисом', time: '35 мин', kcal: 1120, protein: 76, fat: 34, carbs: 130, emoji: idx % 2 === 0 ? '🥩' : '🐟', image: idx % 2 === 0 ? PHOTOS.meat : PHOTOS.fish, ingredients: 'Мясо/рыба 280 г, гарнир 180 г', steps: 'Запечь или потушить основное блюдо, отварить гарнир.' }
+            ]
+        };
+    });
+
+    const ACTIVE_CODE_KEY = 'racion_active_code_v4';
+    const REMEMBER_DEVICE_KEY = 'racion_remember_v4';
+
+    let currentCode = localStorage.getItem(ACTIVE_CODE_KEY) || '';
+    let isRemembered = localStorage.getItem(REMEMBER_DEVICE_KEY) === '1';
+
+    let state = {
+        selectedDayKey: TODAY_KEY,
+        editorDayKey: TODAY_KEY,
+        editorTab: 'products',
+        activePresetId: 'budget2k',
+        theme: 'light',
+        selectedProdEmoji: '🍗',
+        selectedMealEmoji: '🍲',
+        customPresets: {},
+        daysData: null
+    };
+
+    function cloneDays(daysObj) {
+        return JSON.parse(JSON.stringify(daysObj));
+    }
+
+    function getStorageKeyForCode(code) {
+        return 'racion_profile_' + String(code || 'default').trim().toLowerCase();
+    }
+
+    function loadProfileByCode(code) {
+        const cleanCode = String(code || '1234').trim();
+        currentCode = cleanCode;
+        localStorage.setItem(ACTIVE_CODE_KEY, cleanCode);
+
+        const raw = localStorage.getItem(getStorageKeyForCode(cleanCode));
+        if (raw) {
+            try {
+                const parsed = JSON.parse(raw);
+                state = {
+                    ...state,
+                    ...parsed,
+                    selectedDayKey: TODAY_KEY,
+                    editorDayKey: TODAY_KEY
+                };
+            } catch (e) {}
+        } else {
+            // Новый профиль под этот код
+            state.activePresetId = 'budget2k';
+            state.customPresets = {};
+            state.daysData = cloneDays(BUILTIN_PRESETS.budget2k.days);
+        }
+
+        if (!state.daysData) {
+            state.daysData = cloneDays(BUILTIN_PRESETS.budget2k.days);
+        }
+        saveProfile();
+    }
+
+    function saveProfile() {
+        if (!currentCode) return;
+        try {
+            localStorage.setItem(getStorageKeyForCode(currentCode), JSON.stringify({
+                activePresetId: state.activePresetId,
+                theme: state.theme,
+                customPresets: state.customPresets,
+                daysData: state.daysData
+            }));
+        } catch (e) {}
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.classList.add('show');
+        setTimeout(() => t.classList.remove('show'), 2200);
+    }
+
+    function copyText(text, successMsg) {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        try {
+            document.execCommand('copy');
+            showToast(successMsg || 'Скопировано');
+        } catch (e) {}
+        document.body.removeChild(ta);
+    }
+
+    function getDaySpec(key) {
+        return WEEK_DAYS.find(d => d.key === key) || WEEK_DAYS[0];
+    }
+
+    function getPresetTitle(id) {
+        if (BUILTIN_PRESETS[id]) return BUILTIN_PRESETS[id].title;
+        if (state.customPresets && state.customPresets[id]) return state.customPresets[id].title;
+        return 'Свой рацион';
+    }
+
+    function applyTheme(theme) {
+        state.theme = theme || 'light';
+        document.getElementById('appBody').setAttribute('data-theme', state.theme);
+        document.querySelectorAll('[data-theme-btn]').forEach(btn => {
+            const active = btn.getAttribute('data-theme-btn') === state.theme;
+            btn.style.boxShadow = active ? '0 0 0 2px var(--text-main)' : 'none';
+        });
+        saveProfile();
+    }
+
+    // Отрисовка главного экрана
+    function renderMain() {
+        const spec = getDaySpec(state.selectedDayKey);
+        const dayData = state.daysData[state.selectedDayKey] || { products: [], meals: [] };
+
+        document.getElementById('dateDisplayText').textContent = `${spec.dateStr} ${spec.name}`;
+        document.getElementById('todayBadge').textContent = spec.isToday ? 'Сегодня ▾' : `${spec.short} ▾`;
+        document.getElementById('drawerPresetSubtitle').textContent = getPresetTitle(state.activePresetId);
+        document.getElementById('currentCodeDisplay').textContent = currentCode;
+
+        // Полоска дней недели на ПК
+        document.getElementById('desktopWeekBar').innerHTML = WEEK_DAYS.map(d => `
+            <button type="button" onclick="selectDay('${d.key}')" class="week-day-btn ${d.key === state.selectedDayKey ? 'active' : ''}">
+                <span>${d.name}</span>
+                <span style="opacity: 0.7; font-size: 11px;">${d.dateStr.slice(0, 5)}</span>
+            </button>
+        `).join('');
+
+        // Карточка Продукты
+        document.getElementById('mainProductsCount').textContent = `${dayData.products.length} поз.`;
+        const emojisEl = document.getElementById('mainProductsEmojis');
+        const namesEl = document.getElementById('mainProductsNames');
+        const totalRubEl = document.getElementById('mainProductsTotal');
+
+        if (dayData.products.length === 0) {
+            emojisEl.innerHTML = '';
+            namesEl.textContent = 'Нажмите, чтобы добавить или посмотреть продукты';
+            totalRubEl.textContent = '0 ₽';
+        } else {
+            emojisEl.innerHTML = dayData.products.map(p => `<div class="emoji-chip">${p.emoji || '🥗'}</div>`).join('');
+            namesEl.textContent = dayData.products.map(p => `${p.name} (${p.weight})`).join(' • ');
+            const sum = dayData.products.reduce((acc, p) => acc + (Number(p.price) || 0), 0);
+            totalRubEl.textContent = `~${sum} ₽ на день`;
+        }
+
+        // Карточка Меню (Что приготовить из них)
+        const mealsEl = document.getElementById('mainMealsList');
+        const mealsStatEl = document.getElementById('mainMealsTotal');
+
+        if (dayData.meals.length === 0) {
+            mealsEl.innerHTML = `<p class="preview-sub">Блюда на этот день не добавлены</p>`;
+            mealsStatEl.textContent = '0 блюд';
+        } else {
+            mealsEl.innerHTML = dayData.meals.map(m => `
+                <div class="mini-meal-row">
+                    <div class="mini-meal-left">
+                        <span style="font-size: 18px;">${m.emoji || '🍲'}</span>
+                        <span class="title">${m.type}: ${m.title}</span>
+                    </div>
+                    <span style="color: var(--text-sub); flex-shrink: 0;">${m.kcal} ккал</span>
+                </div>
+            `).join('');
+            const kcalSum = dayData.meals.reduce((acc, m) => acc + (Number(m.kcal) || 0), 0);
+            mealsStatEl.textContent = `${dayData.meals.length} блюд • ~${kcalSum} ккал`;
+        }
+    }
+
+    // Отрисовка модалки Продуктов
+    function renderProductsModal() {
+        const spec = getDaySpec(state.selectedDayKey);
+        const dayData = state.daysData[state.selectedDayKey] || { products: [], meals: [] };
+        document.getElementById('productsModalTitle').textContent = `Продукты • ${spec.name} (${spec.dateStr})`;
+
+        const container = document.getElementById('productsModalList');
+        if (dayData.products.length === 0) {
+            container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-sub); font-weight: 700;">Список продуктов пуст</div>`;
+            return;
+        }
+
+        container.innerHTML = dayData.products.map(p => `
+            <article class="item-card">
+                <div class="item-media">
+                    ${p.image ? `<img src="${p.image}" alt="${p.name}" loading="lazy" onerror="this.style.display='none'">` : `<span class="fallback-emoji">${p.emoji || '🥗'}</span>`}
+                    <span class="floating-tag">${p.emoji || '🥗'}</span>
+                </div>
+                <div class="item-content">
+                    <div class="item-head">
+                        <div>
+                            <div class="item-name">${p.name}</div>
+                            <div class="item-sub">Граммовка: ${p.weight}</div>
+                        </div>
+                        <span class="price-tag">~${p.price} ₽</span>
+                    </div>
+                    <div class="kbzhu-grid">
+                        <div class="kbzhu-cell"><div class="kbzhu-val">${p.kcal}</div><div class="kbzhu-lbl">ккал</div></div>
+                        <div class="kbzhu-cell"><div class="kbzhu-val">${p.protein}г</div><div class="kbzhu-lbl">белки</div></div>
+                        <div class="kbzhu-cell"><div class="kbzhu-val">${p.fat}г</div><div class="kbzhu-lbl">жиры</div></div>
+                        <div class="kbzhu-cell"><div class="kbzhu-val">${p.carbs}г</div><div class="kbzhu-lbl">углев.</div></div>
+                    </div>
+                </div>
+            </article>
+        `).join('');
+    }
+
+    // Отрисовка модалки Меню
+    function renderMealsModal() {
+        const spec = getDaySpec(state.selectedDayKey);
+        const dayData = state.daysData[state.selectedDayKey] || { products: [], meals: [] };
+        document.getElementById('mealsModalTitle').textContent = `Меню • ${spec.name} (${spec.dateStr})`;
+
+        const container = document.getElementById('mealsModalList');
+        if (dayData.meals.length === 0) {
+            container.innerHTML = `<div style="grid-column: 1 / -1; text-align: center; padding: 40px; color: var(--text-sub); font-weight: 700;">Блюда не добавлены</div>`;
+            return;
+        }
+
+        container.innerHTML = dayData.meals.map(m => `
+            <article class="item-card">
+                <div class="item-media">
+                    ${m.image ? `<img src="${m.image}" alt="${m.title}" loading="lazy" onerror="this.style.display='none'">` : `<span class="fallback-emoji">${m.emoji || '🍲'}</span>`}
+                    <span class="floating-tag">${m.emoji || '🍲'} ${m.type}</span>
+                    <span class="floating-right">${m.time}</span>
+                </div>
+                <div class="item-content">
+                    <div>
+                        <div class="item-name">${m.title}</div>
+                        <div class="item-sub" style="margin-top: 2px;">${m.kcal} ккал • Б: ${m.protein}г • Ж: ${m.fat}г • У: ${m.carbs}г</div>
+                    </div>
+                    <div class="recipe-box">
+                        <strong>Продукты: ${m.ingredients}</strong>
+                        <span style="color: var(--text-sub);">${m.steps}</span>
+                    </div>
+                </div>
+            </article>
+        `).join('');
+    }
+
+    // Отрисовка выбора дня
+    function renderDayPicker() {
+        document.getElementById('dayPickerList').innerHTML = WEEK_DAYS.map(d => {
+            const active = d.key === state.selectedDayKey;
+            return `
+                <button type="button" onclick="selectDay('${d.key}')" class="${active ? 'btn-accent' : 'btn-surface'}" style="display: flex; align-items: center; justify-content: space-between; padding: 14px 18px;">
+                    <span style="font-size: 14px; font-weight: 800;">${d.name} ${d.isToday ? '(Сегодня)' : ''}</span>
+                    <span style="font-size: 12px; opacity: 0.8;">${d.dateStr}</span>
+                </button>
+            `;
+        }).join('');
+    }
+
+    window.selectDay = function(key) {
+        state.selectedDayKey = key;
+        state.editorDayKey = key;
+        renderMain();
+        document.getElementById('dayPickerModal').classList.remove('open');
+    };
+
+    // Отрисовка смайликов в настройках
+    function renderEmojiGrids() {
+        document.getElementById('prodEmojiSelectedPreview').textContent = state.selectedProdEmoji;
+        document.getElementById('mealEmojiSelectedPreview').textContent = state.selectedMealEmoji;
+
+        document.getElementById('prodEmojiGrid').innerHTML = EMOJIS.map(e => `
+            <button type="button" onclick="pickProdEmoji('${e}')" class="emoji-pick-btn ${state.selectedProdEmoji === e ? 'selected' : ''}">${e}</button>
+        `).join('');
+
+        document.getElementById('mealEmojiGrid').innerHTML = EMOJIS.map(e => `
+            <button type="button" onclick="pickMealEmoji('${e}')" class="emoji-pick-btn ${state.selectedMealEmoji === e ? 'selected' : ''}">${e}</button>
+        `).join('');
+    }
+
+    window.pickProdEmoji = function(e) {
+        state.selectedProdEmoji = e;
+        renderEmojiGrids();
+    };
+
+    window.pickMealEmoji = function(e) {
+        state.selectedMealEmoji = e;
+        renderEmojiGrids();
+    };
+
+    // Отрисовка экрана Настройки меню и продуктов
+    function renderSettings() {
+        const allPresets = [
+            ...Object.values(BUILTIN_PRESETS).map(p => ({ ...p, isCustom: false })),
+            ...Object.values(state.customPresets || {}).map(p => ({ ...p, isCustom: true }))
+        ];
+
+        document.getElementById('presetsGrid').innerHTML = allPresets.map(p => {
+            const active = state.activePresetId === p.id;
+            return `
+                <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 18px; padding: 16px; display: flex; flex-direction: column; justify-content: space-between; gap: 12px;">
+                    <div>
+                        <div style="display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                            <strong style="font-size: 14px;">${p.title}</strong>
+                            ${p.isCustom ? `<button type="button" onclick="deleteCustomPreset('${p.id}')" style="font-size: 12px; color: var(--danger); font-weight: 700;">Удалить</button>` : ''}
+                        </div>
+                        <p style="font-size: 12px; color: var(--text-sub); margin-top: 4px;">${p.desc || 'Пользовательский пресет на неделю'}</p>
+                    </div>
+                    <button type="button" onclick="applyPresetById('${p.id}')" class="${active ? 'btn-surface' : 'btn-accent'}" style="padding: 10px;">
+                        ${active ? '✓ Применён' : 'Включить пресет'}
+                    </button>
+                </div>
+            `;
+        }).join('');
+
+        // Кнопки дней недели в редакторе
+        document.getElementById('editorDayButtons').innerHTML = WEEK_DAYS.map(d => `
+            <button type="button" onclick="selectEditorDay('${d.key}')" class="${d.key === state.editorDayKey ? 'btn-accent' : 'btn-surface'}" style="padding: 10px 4px; font-size: 12px; text-align: center;">
+                ${d.short}
+            </button>
+        `).join('');
+
+        const dayObj = state.daysData[state.editorDayKey] || { products: [], meals: [] };
+
+        // Список продуктов дня
+        document.getElementById('editorProductsItems').innerHTML = dayObj.products.length === 0
+            ? `<div style="font-size: 12px; color: var(--text-sub); padding: 12px 0;">Нет продуктов</div>`
+            : dayObj.products.map((p, idx) => `
+                <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                        <span style="font-size: 20px;">${p.emoji || '🥗'}</span>
+                        <div style="min-width: 0;">
+                            <div style="font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.name}</div>
+                            <div style="font-size: 11px; color: var(--text-sub);">${p.weight} • ~${p.price} ₽ • ${p.kcal} ккал</div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="removeProd(${idx})" class="btn-surface" style="padding: 6px 10px; font-size: 12px;">✕</button>
+                </div>
+            `).join('');
+
+        // Список блюд дня
+        document.getElementById('editorMealsItems').innerHTML = dayObj.meals.length === 0
+            ? `<div style="font-size: 12px; color: var(--text-sub); padding: 12px 0;">Нет блюд</div>`
+            : dayObj.meals.map((m, idx) => `
+                <div style="background: var(--bg-surface); border: 1px solid var(--border); border-radius: 14px; padding: 10px 12px; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0;">
+                        <span style="font-size: 20px;">${m.emoji || '🍲'}</span>
+                        <div style="min-width: 0;">
+                            <div style="font-size: 13px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${m.type}: ${m.title}</div>
+                            <div style="font-size: 11px; color: var(--text-sub);">${m.time} • ${m.kcal} ккал</div>
+                        </div>
+                    </div>
+                    <button type="button" onclick="removeMeal(${idx})" class="btn-surface" style="padding: 6px 10px; font-size: 12px;">✕</button>
+                </div>
+            `).join('');
+
+        renderEmojiGrids();
+    }
+
+    window.applyPresetById = function(id) {
+        if (BUILTIN_PRESETS[id]) {
+            state.activePresetId = id;
+            state.daysData = cloneDays(BUILTIN_PRESETS[id].days);
+        } else if (state.customPresets && state.customPresets[id]) {
+            state.activePresetId = id;
+            state.daysData = cloneDays(state.customPresets[id].days);
+        }
+        saveProfile();
+        renderSettings();
+        renderMain();
+        showToast('Пресет включён');
+    };
+
+    window.deleteCustomPreset = function(id) {
+        if (state.customPresets && state.customPresets[id]) {
+            delete state.customPresets[id];
+            if (state.activePresetId === id) state.activePresetId = 'budget2k';
+            saveProfile();
+            renderSettings();
+            renderMain();
+        }
+    };
+
+    window.selectEditorDay = function(key) {
+        state.editorDayKey = key;
+        renderSettings();
+    };
+
+    window.removeProd = function(idx) {
+        state.daysData[state.editorDayKey].products.splice(idx, 1);
+        saveProfile();
+        renderSettings();
+        renderMain();
+    };
+
+    window.removeMeal = function(idx) {
+        state.daysData[state.editorDayKey].meals.splice(idx, 1);
+        saveProfile();
+        renderSettings();
+        renderMain();
+    };
+
+    // Сохранение своего пресета
+    document.getElementById('saveCustomPresetForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const name = document.getElementById('customPresetNameInput').value.trim();
+        if (!name) return;
+        const id = 'custom_' + Date.now();
+        if (!state.customPresets) state.customPresets = {};
+        state.customPresets[id] = {
+            id,
+            title: name,
+            desc: 'Свой сохранённый пресет',
+            days: cloneDays(state.daysData)
+        };
+        state.activePresetId = id;
+        document.getElementById('customPresetNameInput').value = '';
+        saveProfile();
+        renderSettings();
+        renderMain();
+        showToast('Свой пресет сохранён');
+    });
+
+    // Переключение вкладок Продукты / Меню в редакторе
+    document.getElementById('tabBtnProducts').addEventListener('click', () => {
+        document.getElementById('tabBtnProducts').style.background = 'var(--bg-surface)';
+        document.getElementById('tabBtnMeals').style.background = 'transparent';
+        document.getElementById('editorProductsSection').classList.remove('hidden');
+        document.getElementById('editorMealsSection').classList.add('hidden');
+    });
+
+    document.getElementById('tabBtnMeals').addEventListener('click', () => {
+        document.getElementById('tabBtnMeals').style.background = 'var(--bg-surface)';
+        document.getElementById('tabBtnProducts').style.background = 'transparent';
+        document.getElementById('editorMealsSection').classList.remove('hidden');
+        document.getElementById('editorProductsSection').classList.add('hidden');
+    });
+
+    // Добавление своего продукта
+    document.getElementById('addProductForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        state.daysData[state.editorDayKey].products.push({
+            name: document.getElementById('prodName').value.trim(),
+            weight: document.getElementById('prodWeight').value.trim(),
+            price: Number(document.getElementById('prodPrice').value) || 0,
+            kcal: Number(document.getElementById('prodKcal').value) || 0,
+            protein: Number(document.getElementById('prodProt').value) || 0,
+            fat: Number(document.getElementById('prodFat').value) || 0,
+            carbs: Number(document.getElementById('prodCarb').value) || 0,
+            emoji: state.selectedProdEmoji,
+            image: document.getElementById('prodImg').value.trim()
+        });
+        e.target.reset();
+        saveProfile();
+        renderSettings();
+        renderMain();
+        showToast('Продукт добавлен');
+    });
+
+    // Добавление своего блюда
+    document.getElementById('addMealForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        state.daysData[state.editorDayKey].meals.push({
+            type: document.getElementById('mealType').value,
+            title: document.getElementById('mealTitle').value.trim(),
+            time: document.getElementById('mealTime').value.trim(),
+            kcal: Number(document.getElementById('mealKcal').value) || 0,
+            protein: Number(document.getElementById('mealProt').value) || 0,
+            fat: Number(document.getElementById('mealFat').value) || 0,
+            carbs: Number(document.getElementById('mealCarb').value) || 0,
+            emoji: state.selectedMealEmoji,
+            ingredients: document.getElementById('mealIngr').value.trim(),
+            steps: document.getElementById('mealSteps').value.trim(),
+            image: document.getElementById('mealImg').value.trim()
+        });
+        e.target.reset();
+        saveProfile();
+        renderSettings();
+        renderMain();
+        showToast('Блюдо добавлено');
+    });
+
+    // Вход по коду
+    document.getElementById('loginForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const code = document.getElementById('codeInput').value.trim();
+        if (!code) return;
+        const rem = document.getElementById('rememberCheckbox').checked;
+        localStorage.setItem(REMEMBER_DEVICE_KEY, rem ? '1' : '0');
+        loadProfileByCode(code);
+        applyTheme(state.theme);
+        renderMain();
+        document.getElementById('lockScreen').classList.add('hidden');
+    });
+
+    // Выход / смена кода
+    document.getElementById('logoutCodeBtn').addEventListener('click', () => {
+        localStorage.setItem(REMEMBER_DEVICE_KEY, '0');
+        document.getElementById('drawerBackdrop').classList.remove('open');
+        document.getElementById('codeInput').value = currentCode;
+        document.getElementById('lockScreen').classList.remove('hidden');
+    });
+
+    // Копирование кода и перенос меню маме
+    document.getElementById('copyCodeBtn').addEventListener('click', () => {
+        copyText(currentCode, 'Код скопирован');
+    });
+
+    document.getElementById('exportMenuBtn').addEventListener('click', () => {
+        try {
+            const payload = btoa(unescape(encodeURIComponent(JSON.stringify({
+                code: currentCode,
+                daysData: state.daysData,
+                customPresets: state.customPresets
+            }))));
+            copyText(payload, 'Код меню скопирован! Отправьте его маме');
+        } catch (e) {}
+    });
+
+    document.getElementById('importMenuBtn').addEventListener('click', () => {
+        document.getElementById('importMenuForm').classList.toggle('hidden');
+    });
+
+    document.getElementById('importMenuForm').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const raw = document.getElementById('importCodeStringInput').value.trim();
+        if (!raw) return;
+        try {
+            const decoded = JSON.parse(decodeURIComponent(escape(atob(raw))));
+            if (decoded && decoded.daysData) {
+                state.daysData = decoded.daysData;
+                if (decoded.customPresets) state.customPresets = decoded.customPresets;
+                saveProfile();
+                renderMain();
+                document.getElementById('importCodeStringInput').value = '';
+                document.getElementById('importMenuForm').classList.add('hidden');
+                document.getElementById('drawerBackdrop').classList.remove('open');
+                showToast('Меню успешно загружено!');
+            }
+        } catch (err) {
+            showToast('Неверный формат кода');
+        }
+    });
+
+    // Открытие и закрытие окон
+    document.getElementById('openProductsCard').addEventListener('click', () => {
+        renderProductsModal();
+        document.getElementById('productsModal').classList.add('open');
+    });
+    document.getElementById('closeProductsModalBtn').addEventListener('click', () => {
+        document.getElementById('productsModal').classList.remove('open');
+    });
+
+    document.getElementById('openMealsCard').addEventListener('click', () => {
+        renderMealsModal();
+        document.getElementById('mealsModal').classList.add('open');
+    });
+    document.getElementById('closeMealsModalBtn').addEventListener('click', () => {
+        document.getElementById('mealsModal').classList.remove('open');
+    });
+
+    document.getElementById('openDayPickerBtn').addEventListener('click', () => {
+        renderDayPicker();
+        document.getElementById('dayPickerModal').classList.add('open');
+    });
+    document.getElementById('closeDayPickerBtn').addEventListener('click', () => {
+        document.getElementById('dayPickerModal').classList.remove('open');
+    });
+
+    document.getElementById('openDrawerBtn').addEventListener('click', () => {
+        document.getElementById('drawerBackdrop').classList.add('open');
+    });
+    document.getElementById('closeDrawerBtn').addEventListener('click', () => {
+        document.getElementById('drawerBackdrop').classList.remove('open');
+    });
+    document.getElementById('drawerBackdrop').addEventListener('click', (e) => {
+        if (e.target.id === 'drawerBackdrop') document.getElementById('drawerBackdrop').classList.remove('open');
+    });
+
+    document.getElementById('openSettingsFromDrawer').addEventListener('click', () => {
+        document.getElementById('drawerBackdrop').classList.remove('open');
+        state.editorDayKey = state.selectedDayKey;
+        renderSettings();
+        document.getElementById('settingsModal').classList.add('open');
+    });
+    document.getElementById('closeSettingsModalBtn').addEventListener('click', () => {
+        document.getElementById('settingsModal').classList.remove('open');
+    });
+
+    document.querySelectorAll('[data-theme-btn]').forEach(btn => {
+        btn.addEventListener('click', () => applyTheme(btn.getAttribute('data-theme-btn')));
+    });
+
+    // Инициализация при запуске
+    if (currentCode && isRemembered) {
+        loadProfileByCode(currentCode);
+        applyTheme(state.theme);
+        renderMain();
+    } else {
+        document.getElementById('lockScreen').classList.remove('hidden');
+        if (currentCode) document.getElementById('codeInput').value = currentCode;
+    }
+</script>
+</body>
+</html>
